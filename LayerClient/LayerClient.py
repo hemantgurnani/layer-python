@@ -452,6 +452,47 @@ class PlatformClient(object):
             request_data,
         )
 
+    def retrieve_messages_for_user(self, conversation_uuid, sender):
+        """
+        Request all messages in a conversation from a  user's perspective.
+        """
+        resp = self._raw_request(
+            METHOD_GET,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                sender.id,
+                LAYER_URI_CONVERSATIONS,
+                conversation_uuid,
+                LAYER_URI_MESSAGES
+                )
+            )
+
+        messages=[]
+        for r in resp:
+            messages.append(Message.from_dict(r))
+
+        return messages
+
+    def retrieve_messages(self, conversation_uuid):
+        """
+        Request all messages in a conversation from the system's perspective.
+        """
+        resp = self._raw_request(
+            METHOD_GET,
+            self._get_layer_uri(
+                LAYER_URI_CONVERSATIONS,
+                conversation_uuid,
+                LAYER_URI_MESSAGES
+            )
+        )
+
+        messages=[]
+        for r in resp:
+            messages.append(Message.from_dict(r))
+
+        return messages
+
+
 class Announcement(BaseLayerResponse):
     """
     Contains the data returned from the API when sending an Announcement
