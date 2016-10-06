@@ -129,6 +129,23 @@ class PlatformClient(object):
             suffix=suffix_string,
         )
 
+    def _get_layer_uri_with_params(self, *suffixes, **params):
+        """
+        Used for building Layer URIs for different API endpoints.
+
+        Parameter`suffixes`: An array of strings, which will be joined as the
+            end portion of the URI body.
+
+        Return: A complete URI for an endpoint with optional arguments
+        """
+        suffix_string = '/'.join(suffixes) if suffixes else ''
+        param_string = '&'.join([k+'='+str(v) for k,v in params.items()])
+        return 'https://api.layer.com/apps/{app_id}/{suffix}?{params}'.format(
+            app_id=self.app_uuid,
+            suffix=suffix_string,
+            params=param_string
+            )
+
     def _raw_request(self, method, url, data=None, extra_headers=None):
         """
         Actually make a call to the Layer API.
@@ -147,6 +164,8 @@ class PlatformClient(object):
         headers = self._get_layer_headers(method)
         if extra_headers:
             headers.update(extra_headers)
+        print method, headers, url
+
         result = requests.request(
             method,
             url,
@@ -491,6 +510,38 @@ class PlatformClient(object):
             messages.append(Message.from_dict(r))
 
         return messages
+
+    def get_conversations_for_user(self, sender, limit=20, as_dict=False):
+        """
+        Request all conversations where user is a participant
+        """
+        print "get_conversations_for_user", sender.id, limit
+        if limit > 1000:
+            limit = 1000
+
+        json_data = self._raw_request(
+            METHOD_GET,
+            self._get_layer_uri_with_params(
+                LAYER_URI_USERS,
+                sender.id,
+                LAYER_URI_CONVERSATIONS,
+                sort_by='last_message',
+                page_size=limit
+                ),
+            )
+
+        if as_dict:
+            return json_data
+        else:
+            conversations = []
+            for c in json_data:
+                conversations.append(Conversation.from_dict(c))
+
+            return conversations
+
+
+
+
 
 
 class Announcement(BaseLayerResponse):
