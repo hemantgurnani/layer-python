@@ -496,7 +496,7 @@ class PlatformClient(object):
 
         return messages
 
-    def retrieve_messages(self, conversation_uuid):
+    def retrieve_messages(self, conversation_uuid, as_dict=False):
         """
         Request all messages in a conversation from the system's perspective.
         """
@@ -508,6 +508,9 @@ class PlatformClient(object):
                 LAYER_URI_MESSAGES
             )
         )
+
+        if as_dict:
+            return resp
 
         messages=[]
         for r in resp:
@@ -723,6 +726,23 @@ class WebhookClient(object):
                     webhook_uuid,
                     LAYER_URI_WEBHOOK_DEACTIVATE
                 ),
+            ),
+        )
+
+
+    def delete_webhook(self, webhook_uuid):
+        """
+        Fetch an existing webhooks by UUID
+
+        Parameter `webhook_uuid`: The UUID of the conversation to fetch
+
+        Return: A `Webhook` instance
+        """
+        self._raw_request(
+            METHOD_DELETE,
+            self._get_layer_uri(
+                LAYER_URI_WEBHOOKS,
+                webhook_uuid,
             ),
         )
 
